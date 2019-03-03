@@ -77,11 +77,11 @@ async function fetchData() {
     })
     .then(_ => {
       counter.taskDown()
-      LoadingStatus.innerHTML = 'Done:)'
+      LoadingStatus.innerHTML = 'Done     :)'
     })
     .catch(_ => {
       window.removeEventListener('scroll', listenToBeginTask, true)
-      LoadingStatus.innerHTML = 'No more:p'
+      LoadingStatus.innerHTML = 'No more  :p'
     })
 }
 
