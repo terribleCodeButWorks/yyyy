@@ -1,0 +1,19 @@
+body {
+  padding-top: 50px;
+  margin-bottom: 20px;
+  color: blue;
+}
+
+nav {
+  background-color: white;
+}
+
+.cover {
+  width: 128px;
+  height: 128px;
+}
+
+/* Global Reset */
+* {
+  box-sizing: border-box;
+}
