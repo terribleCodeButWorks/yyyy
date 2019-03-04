@@ -1,3 +1,11 @@
+'use strict';
+
+const b64dataToBlob = (url) => {
+  let blob = fetch(url).then(res => res.blob())
+  // console.log(blob)
+  return blob
+}
+
 const makeQuery = (pageNumber, nPerPage) => {
   return {
     "v": 3,
@@ -5,14 +13,14 @@ const makeQuery = (pageNumber, nPerPage) => {
       "find": {
         "out.s1": "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut",
         "out.s3": {
-          "$regex": "^audio"
+          "$regex": "^(video|audio)"
         }
       },
       "skip": pageNumber > 0 ? ((pageNumber - 1) * nPerPage) : 0,
       "limit": nPerPage
     },
     "r": {
-      "f": "[.[] | { h: .tx.h, lb2: .out[0].lb2, s3: .out[0].s3 }]"
+      "f": "[.[] | { h: .tx.h, lb2: .out[0].lb2, s3: .out[0].s3, s4: .out[0].s4, s5: .out[0].s5}]"
     }
   }
 };
@@ -64,14 +72,16 @@ async function fetchData() {
       return r.json()
     })
     .then(function(r) {
-      var result = r.c;
-      result.forEach((a) => {
+      var result = r.c
+      result.forEach(async (a) => {
         if (!!a.lb2) {
-          let src = "data:" + a.s3 + ";base64, " + a.lb2
-          console.log(a.s3)
-          let e = makeElement(a.h, a.s3, src, p)
+          let b64 = a.lb2
+          console.log(a.s3, a.s4, a.s5)
+          let e = await makeElement(a.h, a.s3, b64, p, a.s5)
+          console.log(e)
 
-          Gallery.insertAdjacentHTML('beforeend', e)
+          // Gallery.insertAdjacentHTM('beforeend', e)
+          Gallery.appendChild(e)
         }
       })
     })
@@ -85,18 +95,27 @@ async function fetchData() {
     })
 }
 
-function makeElement(hash, type, src, page) {
-  let e = `
-  <li class="card mb-3 text-center">
-    <div class="card-body d-flex justify-content-center">
-      <audio class="page_${page}" controls="controls" autobuffer="autobuffer">
-        <source src="${src}">
-      </audio>
-    </div>
-    <div class"card-footer text-muted">H: ${hash}</div>
-  </li>`
+async function makeElement(hash, type, b64, page, filename) {
+  type = type === 'video/vnd.dlna.mpeg-tts' ? 'video/mp4' : type
+  let url = `data:${type};base64, ` + b64
+  let blob = await b64dataToBlob(url)
+  console.log(blob)
+  let blobUrl = URL.createObjectURL(blob)
+  console.log(blobUrl)
 
-  return e
+  let media = document.createElement('video')
+  media.src = blobUrl
+  media.type = type
+  media.controls = "controls"
+  // let e = `
+  // <li class="card mb-3 text-center">
+  //   <div class="card-body d-flex justify-content-center">
+  //     ${media}
+  //   </div>
+  //   <div class"card-footer text-muted">${filename || hash}</div>
+  // </li>`
+
+  return media
 }
 
 const listenToBeginTask = () => {
